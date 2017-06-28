@@ -5,35 +5,48 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
 %   item iv.
 %   
     
-    %% adicionando ruído AWGN
+    %% canais e ruído
+    
+    std = sqrt(N0);         % desvio padrão do ruído       
     
     switch(context)
         %canal AWGN
         case 0 
             receivedSymbols = symbolVector;
+            receivedSymbols = receivedSymbols + randn(size(receivedSymbols))*std + 1j*randn(size(receivedSymbols))*std;    % adição de ruído Normal com média 0, desvio padrão std    
     
         %canal item ii
         case 1
             receivedSymbols = zeros(1, length(symbolVector) + 2);   %sinal recebido alongado pelo canal
+            
+            %passando o sinal recebido pelo canal
             receivedSymbols = receivedSymbols + [(1/sqrt(2))*symbolVector 0 0];
             receivedSymbols = receivedSymbols + [0 (1j/2)*symbolVector 0];
             receivedSymbols = receivedSymbols + [0  0 (-1/2)*symbolVector];
             
+            receivedSymbols = receivedSymbols + randn(size(receivedSymbols))*std + 1j*randn(size(receivedSymbols))*std;    % adição de ruído Normal com média 0, desvio padrão std    
+            
         %canal item iii
         case 2
             receivedSymbols = zeros(1, length(symbolVector) + 2);   %sinal recebido alongado pelo canal
-            h = [1/sqrt(2) 1j/2 -1/2];
-            H = ztrans(h);
-            ZF = 1./H;
-            receivedSymbols = conv(receivedSymbols, iztrans(ZF));
+            h = [1/sqrt(2) 1j/2 -1/2];      %reposta do canal            
+            
+            %passando o sinal recebido pelo canal
+            receivedSymbols = receivedSymbols + [(1/sqrt(2))*symbolVector 0 0];
+            receivedSymbols = receivedSymbols + [0 (1j/2)*symbolVector 0];
+            receivedSymbols = receivedSymbols + [0  0 (-1/2)*symbolVector];
+            
+            receivedSymbols = receivedSymbols + randn(size(receivedSymbols))*std + 1j*randn(size(receivedSymbols))*std;    % adição de ruído Normal com média 0, desvio padrão std    
+            
+            %equalizador
+            H = fft(h);
+            ZF = ifft(1./H);
+            receivedSymbols = conv(receivedSymbols,ZF);
+                                    
             
         %canal item iv
         case 3
-    end
-     
-    std = sqrt(N0);         % desvio padrão do ruído
-    
-    receivedSymbols = receivedSymbols + randn(size(receivedSymbols))*std + 1j*randn(size(receivedSymbols))*std;    % adição de ruído Normal com média 0, desvio padrão std    
+    end         
     
     %% extraindo sequência de bits do sinal transmitido
 

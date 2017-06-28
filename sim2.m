@@ -41,7 +41,7 @@ title({'BER x Eb/N0 - Canal AWGN'});
 ylabel('BER');
 
 %% 1.II Cálculo BER para Eb/N0 de 0db a 12db para canal item ii
-for i=1:length(berAWGN)
+for i=1:length(berII)
     [ berII(i), receivedSymbols ] = berCalc2( bits, symbolVector, compareVector, N0(i), 1 );
     display(strcat('iteração: ',' ', int2str(i)))    
 end
@@ -49,17 +49,17 @@ end
 figure(2)
 semilogy(1:1:12, berII)
 xlabel('Eb/N0 db');
-title({'BER x Eb/N0 - Canal AWGN'});
+title({'BER x Eb/N0 - Canal item II'});
 ylabel('BER');
 
 %% 1.III Cálculo BER para Eb/N0 de 0db a 12db para canal item iii
-% for i=1:length(berAWGN)
-%     [ berIII(i), receivedSymbols ] = berCalc2( bits, symbolVector, compareVector, N0(i), 2 );
-%     display(strcat('iteração: ',' ', int2str(i)))    
-% end
-% 
-% figure(2)
-% semilogy(1:1:12, berII)
-% xlabel('Eb/N0 db');
-% title({'BER x Eb/N0 - Canal AWGN'});
-% ylabel('BER');
+for i=1:length(berIII)
+    [ berIII(i), receivedSymbols ] = berCalc2( bits, symbolVector, compareVector, N0(i), 2 );
+    display(strcat('iteração: ',' ', int2str(i)))    
+end
+
+figure(3)
+semilogy(1:1:12, berIII)
+xlabel('Eb/N0 db');
+title({'BER x Eb/N0 - Canal item III'});
+ylabel('BER');
