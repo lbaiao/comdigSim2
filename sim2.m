@@ -41,7 +41,7 @@ end
 figure(1)
 semilogy(1:1:12, berAWGN)
 xlabel('Eb/N0 db');
-title({'BER x Eb/N0 - Canal AWGN'});
+title({'BER x Eb/N0 - Item I - Canal AWGN'});
 ylabel('BER');
 
 %% 1.II Cálculo BER para Eb/N0 de 0db a 12db para canal item ii
@@ -53,7 +53,7 @@ end
 figure(2)
 semilogy(1:1:12, berII)
 xlabel('Eb/N0 db');
-title({'BER x Eb/N0 - Canal item II'});
+title({'BER x Eb/N0 - Item II - Canal h[k], sem equalização'});
 ylabel('BER');
 
 %% 1.III Cálculo BER para Eb/N0 de 0db a 12db para canal item iii
@@ -65,10 +65,10 @@ end
 figure(3)
 semilogy(1:1:12, berIII)
 xlabel('Eb/N0 db');
-title({'BER x Eb/N0 - Canal item III'});
+title({'BER x Eb/N0 - Item III - SC-FDE, N=16, G=2, equalizador ZF'});
 ylabel('BER');
 
-%% 1.III Cálculo BER para Eb/N0 de 0db a 12db para canal item iv
+%% 1.IV Cálculo BER para Eb/N0 de 0db a 12db para canal item iv
 for i=1:length(berIV)
     [ berIV(i), receivedSymbols ] = berCalc2( bits, symbolVector, compareVector, N0(i), 2, Eb );
     display(strcat('iteração: ',' ', int2str(i)))    
@@ -77,5 +77,5 @@ end
 figure(4)
 semilogy(1:1:12, berIV)
 xlabel('Eb/N0 db');
-title({'BER x Eb/N0 - Canal item IV'});
+title({'BER x Eb/N0 - Item IV - Canal h[k], equalizador MMSE'});
 ylabel('BER');

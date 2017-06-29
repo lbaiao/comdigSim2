@@ -38,8 +38,7 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
             symbolVector = [symbolVector(:, size(symbolVector, 2)) symbolVector(:, size(symbolVector, 2) - 1) symbolVector]';
             symbolVector = reshape(symbolVector, 1, size(symbolVector, 1)*size(symbolVector, 2));
             
-            receivedSymbols = zeros(1, length(symbolVector) + 2);   %sinal recebido alongado pelo canal
-            h = [1/sqrt(2) 1j/2 -1/2];      %reposta do canal            
+            receivedSymbols = zeros(1, length(symbolVector) + 2);   %sinal recebido alongado pelo canal                   
             
             %passando o sinal recebido pelo canal
             receivedSymbols = receivedSymbols + [(1/sqrt(2))*symbolVector 0 0];
@@ -59,9 +58,16 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
             receivedSymbols = receivedSymbols(1:length(receivedSymbols)-16);
             
             %equalizador
+            
+            h = [1/sqrt(2) 1j/2 -1/2 zeros(1, length(receivedSymbols) - 3)];      %reposta do canal     
+            
             H = fft(h);
-            ZF = ifft(1./H);
-            receivedSymbols = conv(receivedSymbols,ZF);
+            ZF = 1./H;
+            receivedSymbols = ifft(fft(receivedSymbols .* ZF));
+                        
+%             H = fft(h);
+%             ZF = ifft(1./H);
+%             receivedSymbols = conv(receivedSymbols,ZF);
             
             
                                                 
