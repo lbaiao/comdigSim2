@@ -83,7 +83,7 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
             receivedSymbols = receivedSymbols + randn(size(receivedSymbols))*std + 1j*randn(size(receivedSymbols))*std;    % adição de ruído Normal com média 0, desvio padrão std                
             
             h = [1/sqrt(2) 1j/2 -1/2];      %reposta do canal             
-            Es = 3*Eb;
+            Es = 2*Eb;
             
             %equalizador
             H = fft(h);
