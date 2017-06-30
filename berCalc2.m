@@ -7,7 +7,7 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
     
     %% canais e ruído
     
-    std = sqrt(N0);         % desvio padrão do ruído       
+    std = sqrt(N0/2);         % desvio padrão do ruído       
     
     switch(context)
         %canal AWGN
@@ -59,11 +59,11 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
             
             %equalizador
             
-            h = [1/sqrt(2) 1j/2 -1/2 zeros(1, length(receivedSymbols) - 3)];      %reposta do canal     
+            h = [1/sqrt(2) 1j/2 -1/2 zeros(1, length(receivedSymbols) - 3)];      %reposta do canal                            
             
             H = fft(h);
             ZF = 1./H;
-            receivedSymbols = ifft(fft(receivedSymbols .* ZF));
+            receivedSymbols = ifft(fft(receivedSymbols) .* ZF);
                         
 %             H = fft(h);
 %             ZF = ifft(1./H);
@@ -87,8 +87,8 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
             
             %equalizador
             H = fft(h);
-            ZF = ifft(conj(H)./(abs(H)^2 + N0/Es));
-            receivedSymbols = conv(receivedSymbols, ZF);
+            MMSE = ifft(conj(H)./(abs(H)^2 + N0/Es));
+            receivedSymbols = ifft(fft(receivedSymbols) .* MMSE);
             
     end         
     
