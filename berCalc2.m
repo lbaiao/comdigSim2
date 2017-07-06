@@ -66,7 +66,7 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
 %             receivedSymbols = reshape(receivedSymbols, 1, size(receivedSymbols, 1)*size(receivedSymbols, 2));
              
                                                 
-        %canal item iv
+        %MMSE para sinal sem SC-FDE
         case 3
             Es = 2*Eb;
             h1 = [1/sqrt(2) 1i/2 -1/2 zeros(1, length(symbolVector)-3)];
@@ -94,6 +94,7 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
             receivedSymbols = fft(receivedSymbols).*ZF;
             receivedSymbols = ifft(receivedSymbols);
         
+        %MMSE para canal h com SC-FDE    
         case 5 
             %montando os blocos com N = 16 e G = 2
             Es = 2*Eb;
