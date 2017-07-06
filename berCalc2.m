@@ -27,8 +27,7 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
             receivedSymbols = receivedSymbols + randn(size(receivedSymbols))*std + 1j*randn(size(receivedSymbols))*std;    % adição de ruído Normal com média 0, desvio padrão std    
             
         %canal item iii
-        case 2
-                        
+        case 2                                    
             %montando os blocos com N = 16 e G = 2
             N = 16;            
             G = 2;
@@ -36,60 +35,105 @@ function [ ber, receivedSymbols ] = berCalc2( bits, symbolVector, compareVector,
             %acrescentando o prefixo cíclico
             symbolVector = reshape(symbolVector, N, length(symbolVector)/N)';
             symbolVector = [symbolVector(:, size(symbolVector, 2)) symbolVector(:, size(symbolVector, 2) - 1) symbolVector]';
-            symbolVector = reshape(symbolVector, 1, size(symbolVector, 1)*size(symbolVector, 2));
+            symbolVector = reshape(symbolVector, 1, size(symbolVector, 1)*size(symbolVector, 2));  
             
-            receivedSymbols = zeros(1, length(symbolVector) + 2);   %sinal recebido alongado pelo canal                   
+            %canal
+            h1 = [1/sqrt(2) 1i/2 -1/2];  
+            noise = sqrt(N0/2).*randn(1, length(symbolVector)) + (1i)*sqrt(N0/2).*randn(1, length(symbolVector));  
             
             %passando o sinal recebido pelo canal
-            receivedSymbols = receivedSymbols + [(1/sqrt(2))*symbolVector 0 0];
-            receivedSymbols = receivedSymbols + [0 (1j/2)*symbolVector 0];
-            receivedSymbols = receivedSymbols + [0  0 (-1/2)*symbolVector];
+            receivedSymbols = conv(h1, symbolVector);
+            receivedSymbols = receivedSymbols(1:end-2);           
+            receivedSymbols = receivedSymbols + noise;              
+                        
+            %removendo o prefixo cíclico
+            receivedSymbols = reshape(receivedSymbols, N+G, length(receivedSymbols)/(N+G))';
+            receivedSymbols = receivedSymbols(:, G+1:size(receivedSymbols,2))';
+            receivedSymbols = reshape(receivedSymbols, 1, size(receivedSymbols, 1)*size(receivedSymbols, 2));
             
-            %adição de ruído Normal com média 0, desvio padrão std    
-            %acréscimo de um bloco extra compensando o alongamento do canal
-            receivedSymbols = [receivedSymbols + randn(size(receivedSymbols))*std + 1j*randn(size(receivedSymbols))*std zeros(1,16)];
+            %canal
+            h1 = [1/sqrt(2) 1i/2 -1/2 zeros(1, length(receivedSymbols)-3)];            
+            H1 = fft(h1);            
+            
+            %equalizador                        
+            ZF = 1./H1;
+            receivedSymbols = fft(receivedSymbols).*ZF;
+            receivedSymbols = ifft(receivedSymbols);
+                                                                       
+%             %removendo o prefixo cíclico
+%             receivedSymbols = reshape(receivedSymbols, N+G, length(receivedSymbols)/(N+G))';
+%             receivedSymbols = receivedSymbols(:, G+1:size(receivedSymbols,2))';
+%             receivedSymbols = reshape(receivedSymbols, 1, size(receivedSymbols, 1)*size(receivedSymbols, 2));
+             
+                                                
+        %canal item iv
+        case 3
+            Es = 2*Eb;
+            h1 = [1/sqrt(2) 1i/2 -1/2 zeros(1, length(symbolVector)-3)];
+            H1 = fft(h1);
+            noise = sqrt(N0/2).*randn(1, length(symbolVector)) + (1i)*sqrt(N0/2).*randn(1, length(symbolVector));
+            receivedSymbols = fft(symbolVector).*H1 + fft(noise);
+
+            %equalizador
+            MMSE = conj(H1)./(abs(H1).^2 + N0/Es);
+            receivedSymbols = receivedSymbols.*MMSE;
+            receivedSymbols = ifft(receivedSymbols);  
+        
+        %Zero Forcing para canal h sem SC-FDE
+        case 4            
+            %canal
+            h1 = [1/sqrt(2) 1i/2 -1/2 zeros(1, length(symbolVector)-3)];
+            noise = sqrt(N0/2).*randn(1, length(symbolVector)) + (1i)*sqrt(N0/2).*randn(1, length(symbolVector));
+            H1 = fft(h1);
+            
+            %passando o sinal recebido pelo canal
+            receivedSymbols = ifft(fft(symbolVector).*H1 + fft(noise));
+            
+            %equalizador                        
+            ZF = 1./H1;
+            receivedSymbols = fft(receivedSymbols).*ZF;
+            receivedSymbols = ifft(receivedSymbols);
+        
+        case 5 
+            %montando os blocos com N = 16 e G = 2
+            Es = 2*Eb;
+            N = 16;            
+            G = 2;
+            
+            %acrescentando o prefixo cíclico
+            symbolVector = reshape(symbolVector, N, length(symbolVector)/N)';
+            symbolVector = [symbolVector(:, size(symbolVector, 2)) symbolVector(:, size(symbolVector, 2) - 1) symbolVector]';
+            symbolVector = reshape(symbolVector, 1, size(symbolVector, 1)*size(symbolVector, 2));  
+            
+            %canal
+            h1 = [1/sqrt(2) 1i/2 -1/2];
+            noise = sqrt(N0/2).*randn(1, length(symbolVector)) + (1i)*sqrt(N0/2).*randn(1, length(symbolVector));                        
+            
+            %passando o sinal recebido pelo canal
+            receivedSymbols = conv(h1, symbolVector);
+            receivedSymbols = receivedSymbols(1, 1:end-2);
+            receivedSymbols = receivedSymbols + noise;                                                                     
             
             %removendo o prefixo cíclico
             receivedSymbols = reshape(receivedSymbols, N+G, length(receivedSymbols)/(N+G))';
             receivedSymbols = receivedSymbols(:, G+1:size(receivedSymbols,2))';
-            receivedSymbols = reshape(receivedSymbols, 1, size(receivedSymbols, 1)*size(receivedSymbols, 2));                        
+            receivedSymbols = reshape(receivedSymbols, 1, size(receivedSymbols, 1)*size(receivedSymbols, 2));   
+  
             
-            %retirando o último bloco que não possui informação
-            receivedSymbols = receivedSymbols(1:length(receivedSymbols)-16);
+            %canal
+            h1 = [1/sqrt(2) 1i/2 -1/2 zeros(1, length(receivedSymbols)-3)];            
+            H1 = fft(h1);
+                                  
+            %equalizador                        
+            MMSE = conj(H1)./(abs(H1).^2 + N0/Es);
+            receivedSymbols = fft(receivedSymbols).*MMSE;
+            receivedSymbols = ifft(receivedSymbols);  
             
-            %equalizador
-            
-            h = [1/sqrt(2) 1j/2 -1/2 zeros(1, length(receivedSymbols) - 3)];      %reposta do canal                            
-            
-            H = fft(h);
-            ZF = 1./H;
-            receivedSymbols = ifft(fft(receivedSymbols) .* ZF);
-                        
-%             H = fft(h);
-%             ZF = ifft(1./H);
-%             receivedSymbols = conv(receivedSymbols,ZF);
-            
-            
-                                                
-        %canal item iv
-        case 3
-            receivedSymbols = zeros(1, length(symbolVector) + 2);   %sinal recebido alongado pelo canal
-            
-            %passando o sinal recebido pelo canal
-            receivedSymbols = receivedSymbols + [(1/sqrt(2))*symbolVector 0 0];
-            receivedSymbols = receivedSymbols + [0 (1j/2)*symbolVector 0];
-            receivedSymbols = receivedSymbols + [0  0 (-1/2)*symbolVector];
-            
-            receivedSymbols = receivedSymbols + randn(size(receivedSymbols))*std + 1j*randn(size(receivedSymbols))*std;    % adição de ruído Normal com média 0, desvio padrão std                
-            
-            h = [1/sqrt(2) 1j/2 -1/2];      %reposta do canal             
-            Es = 2*Eb;
-            
-            %equalizador
-            H = fft(h);
-            MMSE = ifft(conj(H)./(abs(H)^2 + N0/Es));
-            receivedSymbols = ifft(fft(receivedSymbols) .* MMSE);
-            
+%             %removendo o prefixo cíclico
+%             receivedSymbols = reshape(receivedSymbols, N+G, length(receivedSymbols)/(N+G))';
+%             receivedSymbols = receivedSymbols(:, G+1:size(receivedSymbols,2))';
+%             receivedSymbols = reshape(receivedSymbols, 1, size(receivedSymbols, 1)*size(receivedSymbols, 2));   
+           
     end         
     
     %% extraindo sequência de bits do sinal transmitido
